@@ -2,39 +2,62 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BaltaStore.Domain.StoreContext.Commands.CustomerCommands.Inputs;
 using BaltaStore.Domain.StoreContext.Entities;
+using BaltaStore.Domain.StoreContext.Handlers;
+using BaltaStore.Domain.StoreContext.Queries;
+using BaltaStore.Domain.StoreContext.Repositories;
+using BaltaStore.Domain.StoreContext.ValueObjects;
+using BaltaStore.Shared.Commands;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BaltaStore.Api.Controllers
 {
     public class CustomerController : Controller
     {
+        private readonly ICustomerRepository _repository;
+
+        private readonly CustomerHandler _handler;
+
+        public CustomerController(ICustomerRepository repository, CustomerHandler handler)
+        {
+            _repository = repository;
+            _handler = handler;
+        }
+
         [HttpGet]
         [Route("customers")]
-        public List<Customer> Get()
+        public IEnumerable<ListCustomerQueryResult> Get()
         {
-            return null;
+      
+            return _repository.Get();
         }
 
         [HttpGet]
         [Route("customers/{id}")]
-        public List<Customer> GetById(Guid id)
+        public GetCustomerQueryResult GetById(Guid id)
         {
-            return null;
+            return _repository.GetById(id);
         }
 
         [HttpGet]
         [Route("customers/{id}/orders")]
-        public List<Order> GetOrders(Guid id)
+        public IEnumerable<ListCustomerOrdersQueryResult> GetOrders(Guid id)
         {
-            return null;
+            return _repository.GetOrders(id);
         }
 
         [HttpPost]
         [Route("customers")]
-        public Customer Post([FromBody]Customer customer)
+        public object Post([FromBody]CreateCustomerCommand command)
         {
-            return null;
+            var result = (CreateCustomerCommand)_handler.Handle(command);
+           
+            if (_handler.Invalid)
+                return BadRequest(_handler.Notifications); 
+
+
+            return result;
         }
 
         [HttpPut]
